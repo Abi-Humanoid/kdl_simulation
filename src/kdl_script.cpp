@@ -1,6 +1,8 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float64.h"
+#include "control_msgs/JointControllerState.h"
+
 #include <kdl/jntarray.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
@@ -18,18 +20,43 @@ class abi_legs {
             pb_hip_pitch_R,
             pb_hip_roll_R,
             pb_hip_yaw_R,
-            pb_knee_pitch_R,
-            pb_com,
-            pb_centroid,
-            pb_com_x,
-            pb_centroid_x,
-            pb_com_y,
-            pb_centroid_y,
-            pb_l_foot,
-            pb_r_foot;
+            pb_knee_pitch_R;
+
+
+        // Subscribers for joint values
+        ros::Subscriber read_rhip_y,
+            read_rhip_r,
+            read_rhip_p,
+            read_rknee_p,
+            read_rankle_p,
+            read_rankle_r,
+            read_lhip_y,
+            read_lhip_r,
+            read_lhip_p,
+            read_lknee_p,
+            read_lankle_p,
+            read_lankle_r;
+
 
         // KDL::Chains representing Abi's legs
         KDL::Chain r_leg, l_leg;
+
+    void fread_rhip_y(const control_msgs::JointControllerState::ConstPtr &msg)
+    {
+    //    std::cout << msg->process_value << "\n";
+
+    //    std_msgs::Float64 radi;
+    //    radi.data = msg->process_value + 0.01;
+    }
+
+    void fread_rknee_p(const control_msgs::JointControllerState::ConstPtr &msg)
+    {
+       std::cout << msg->process_value << "\n";
+
+       std_msgs::Float64 radi;
+       radi.data = msg->process_value - 0.01;
+       pb_knee_pitch_R.publish(radi);
+    }
 
     public:
         abi_legs(ros::NodeHandle *n, std::string abi_urdf_string, std::string base, std::string l_endf, std::string r_endf) {
@@ -48,6 +75,24 @@ class abi_legs {
             }
             std::cout << "Number of joints in l_leg: " << l_leg.getNrOfJoints() << "\n";
             std::cout << "Number of joints in r_leg: " << r_leg.getNrOfJoints() << "\n";
+
+            // Advertise publishing nodes
+            pb_ankle_pitch_L = n->advertise<std_msgs::Float64>("abi/l_ankle_pitch_joint_position_controller/command", 10);
+            pb_ankle_roll_L = n->advertise<std_msgs::Float64>("abi/l_ankle_roll_joint_position_controller/command", 10);
+            pb_hip_pitch_L = n->advertise<std_msgs::Float64>("abi/l_hip_pitch_joint_position_controller/command", 10);
+            pb_hip_roll_L = n->advertise<std_msgs::Float64>("abi/l_hip_roll_joint_position_controller/command", 10);
+            pb_hip_yaw_L = n->advertise<std_msgs::Float64>("abi/l_hip_yaw_joint_position_controller/command", 10);
+            pb_knee_pitch_L = n->advertise<std_msgs::Float64>("abi/l_knee_pitch_joint_position_controller/command", 10);
+            pb_ankle_pitch_R = n->advertise<std_msgs::Float64>("abi/r_ankle_pitch_joint_position_controller/command", 10);
+            pb_ankle_roll_R = n->advertise<std_msgs::Float64>("abi/r_ankle_roll_joint_position_controller/command", 10);
+            pb_hip_pitch_R = n->advertise<std_msgs::Float64>("abi/r_hip_pitch_joint_position_controller/command", 10);
+            pb_hip_roll_R = n->advertise<std_msgs::Float64>("abi/r_hip_roll_joint_position_controller/command", 10);
+            pb_hip_yaw_R = n->advertise<std_msgs::Float64>("abi/r_hip_yaw_joint_position_controller/command", 10);
+            pb_knee_pitch_R = n->advertise<std_msgs::Float64>("abi/r_knee_pitch_joint_position_controller/command", 10);
+
+            // Configure subscriber nodes for joint values
+            read_rhip_y = n->subscribe("abi/r_hip_yaw_joint_position_controller/state", 1000, &abi_legs::fread_rhip_y, this);
+            read_rknee_p = n->subscribe("abi/r_knee_pitch_joint_position_controller/state", 1000, &abi_legs::fread_rknee_p, this);
         }
 };
 
