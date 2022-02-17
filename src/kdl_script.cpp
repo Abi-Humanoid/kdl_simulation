@@ -4,7 +4,7 @@
 #include <kdl/jntarray.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
-class abi_tree {
+class abi_legs {
     private:
         // Publishers for joint values
         ros::Publisher pb_ankle_pitch_L,
@@ -27,6 +27,28 @@ class abi_tree {
             pb_centroid_y,
             pb_l_foot,
             pb_r_foot;
+
+        // KDL::Chains representing Abi's legs
+        KDL::Chain r_leg, l_leg;
+
+    public:
+        abi_legs(ros::NodeHandle *n, std::string abi_urdf_string, std::string base, std::string l_endf, std::string r_endf) {
+            // Import Abi as a KDL::Tree via kdl_parser
+            KDL::Tree abi_tree;
+            if (!kdl_parser::treeFromFile(abi_urdf_string, abi_tree)) {
+                ROS_ERROR("Failed to construct kdl tree");
+            }
+            std::cout << "Number of joints in KDL tree: " << abi_tree.getNrOfJoints() << "\n";
+
+            if (!abi_tree.getChain(base, l_endf, r_leg)) {
+                std::cout << "Failed to obtain r_leg kinematics chain\n";
+            }
+            if (!abi_tree.getChain(base, r_endf, l_leg)) {
+                std::cout << "Failed to obtain l_leg kinematics chain\n";
+            }
+            std::cout << "Number of joints in l_leg: " << l_leg.getNrOfJoints() << "\n";
+            std::cout << "Number of joints in r_leg: " << r_leg.getNrOfJoints() << "\n";
+        }
 };
 
 int main(int argc, char **argv) {
@@ -34,15 +56,13 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
     ros::Rate rate(100);
 
-    // Import Abi via kdl_parser
-    KDL::Tree abi_tree;
+    // Extract urdf_file from parameters
     std::string abi_urdf_string;
-    std::cout << "FAIL";
-    if (!kdl_parser::treeFromFile("/home/craig/tim_abi_ws/src/abi_description/abi.urdf", abi_tree)){
-      ROS_ERROR("Failed to construct kdl tree");
-      return false;
-    }
+    ros::param::get("abi_urdf_file", abi_urdf_string);
 
-   ros::spin();
-   return 1;
+    // Create instance of abi_legs
+    abi_legs abi(&nh, abi_urdf_string, "base_link", "l_ankle_roll_link__1__1", "r_ankle_roll_link__1__1");
+
+    ros::spin();
+    return 1;
 }

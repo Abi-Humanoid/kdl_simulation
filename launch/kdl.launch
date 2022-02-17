@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<launch>
+  <param name="abi_urdf_file" type="str" value="$(find kdl_simulation)/urdf/abi.urdf"/>
+
+  <node name="kdl_simulation" pkg="kdl_simulation" type="kdl_script" output="screen">
+  </node>
+</launch>
