@@ -4,7 +4,126 @@
 #include "control_msgs/JointControllerState.h"
 
 #include <kdl/jntarray.hpp>
+#include <kdl/tree.hpp>
+#include <kdl/chain.hpp>
 #include <kdl_parser/kdl_parser.hpp>
+
+class walking_gait_angles {
+    public:
+        double  ankle_roll_L,
+                hip_pitch_L,
+                hip_roll_L,
+                hip_yaw_L,
+                knee_pitch_L,
+                ankle_pitch_L,
+                ankle_pitch_R,
+                ankle_roll_R,
+                hip_pitch_R,
+                hip_roll_R,
+                hip_yaw_R,
+                knee_pitch_R;
+
+        walking_gait_angles(
+            double hip_roll_L,
+            double hip_roll_R,
+            double hip_yaw_L,
+            double hip_yaw_R,
+            double hip_pitch_L,
+            double hip_pitch_R,
+            double knee_pitch_L,
+            double knee_pitch_R,            
+            double ankle_pitch_L,
+            double ankle_pitch_R,
+            double ankle_roll_L,
+            double ankle_roll_R) {
+            
+            hip_roll_L = hip_roll_L;
+            hip_roll_R = hip_roll_R;
+            hip_yaw_L = hip_yaw_L;
+            hip_yaw_R = hip_yaw_R;
+            hip_pitch_L = hip_pitch_L;
+            hip_pitch_R = hip_pitch_R;
+            knee_pitch_L = knee_pitch_L;
+            knee_pitch_R = knee_pitch_R;
+            ankle_pitch_L = ankle_pitch_L;
+            ankle_pitch_R = ankle_pitch_R;
+            ankle_roll_L = ankle_roll_L;
+            ankle_roll_R = ankle_roll_R;
+        }
+
+        walking_gait_angles(const walking_gait_angles &g) {
+            
+            hip_roll_L = g.hip_roll_L;
+            hip_roll_R = g.hip_roll_R;
+            hip_yaw_L = g.hip_yaw_L;
+            hip_yaw_R = g.hip_yaw_R;
+            hip_pitch_L = g.hip_pitch_L;
+            hip_pitch_R = g.hip_pitch_R;
+            knee_pitch_L = g.knee_pitch_L;
+            knee_pitch_R = g.knee_pitch_R;
+            ankle_pitch_L = g.ankle_pitch_L;
+            ankle_pitch_R = g.ankle_pitch_R;
+            ankle_roll_L = g.ankle_roll_L;
+            ankle_roll_R = g.ankle_roll_R;
+        }
+
+        void set_angles(
+            double hip_roll_L,
+            double hip_roll_R,
+            double hip_yaw_L,
+            double hip_yaw_R,
+            double hip_pitch_L,
+            double hip_pitch_R,
+            double knee_pitch_L,
+            double knee_pitch_R,            
+            double ankle_pitch_L,
+            double ankle_pitch_R,
+            double ankle_roll_L,
+            double ankle_roll_R) {
+            
+            hip_roll_L = hip_roll_L;
+            hip_roll_R = hip_roll_R;
+            hip_yaw_L = hip_yaw_L;
+            hip_yaw_R = hip_yaw_R;
+            hip_pitch_L = hip_pitch_L;
+            hip_pitch_R = hip_pitch_R;
+            knee_pitch_L = knee_pitch_L;
+            knee_pitch_R = knee_pitch_R;
+            ankle_pitch_L = ankle_pitch_L;
+            ankle_pitch_R = ankle_pitch_R;
+            ankle_roll_L = ankle_roll_L;
+            ankle_roll_R = ankle_roll_R;
+        }
+
+        void add_angles(
+            double hip_roll_L,
+            double hip_roll_R,
+            double hip_yaw_L,
+            double hip_yaw_R,
+            double hip_pitch_L,
+            double hip_pitch_R,
+            double knee_pitch_L,
+            double knee_pitch_R,            
+            double ankle_pitch_L,
+            double ankle_pitch_R,
+            double ankle_roll_L,
+            double ankle_roll_R) {
+            
+            hip_roll_L += hip_roll_L;
+            hip_roll_R += hip_roll_R;
+            hip_yaw_L += hip_yaw_L;
+            hip_yaw_R += hip_yaw_R;
+            hip_pitch_L += hip_pitch_L;
+            hip_pitch_R += hip_pitch_R;
+            knee_pitch_L += knee_pitch_L;
+            knee_pitch_R += knee_pitch_R;
+            ankle_pitch_L += ankle_pitch_L;
+            ankle_pitch_R += ankle_pitch_R;
+            ankle_roll_L += ankle_roll_L;
+            ankle_roll_R += ankle_roll_R;
+        }
+    
+};
 
 class abi_legs {
     private:
@@ -96,6 +215,8 @@ class abi_legs {
     }
 
 
+    
+
     public:
         abi_legs(ros::NodeHandle *n, std::string abi_urdf_string, std::string base, std::string l_endf, std::string r_endf) {
             
@@ -144,37 +265,137 @@ class abi_legs {
             read_lankle_r = n->subscribe("abi/l_ankle_roll_joint_position_controller/state", 1000, &abi_legs::fread_lankle_r, this);
         }
 
+        void publish_gait_angles(walking_gait_angles angles) {
+            std_msgs::Float64 radi;
+            radi.data = angles.ankle_pitch_L;
+            pb_ankle_pitch_L.publish(radi);
+            radi.data = angles.ankle_roll_L;
+            pb_ankle_roll_L.publish(radi);
+            radi.data = angles.hip_pitch_L;
+            pb_hip_pitch_L.publish(radi);
+            radi.data = angles.hip_roll_L;
+            pb_hip_roll_L.publish(radi);
+            radi.data = angles.hip_yaw_L;
+            pb_hip_yaw_L.publish(radi);
+            radi.data = angles.knee_pitch_L;
+            pb_knee_pitch_L.publish(radi);
+            radi.data = angles.ankle_pitch_R;
+            pb_ankle_pitch_R.publish(radi);
+            radi.data = angles.ankle_roll_R;
+            pb_ankle_roll_R.publish(radi);
+            radi.data = angles.hip_pitch_R;
+            pb_hip_pitch_R.publish(radi);
+            radi.data = angles.hip_roll_R;
+            pb_hip_roll_R.publish(radi);
+            radi.data = angles.hip_yaw_R;
+            pb_hip_yaw_R.publish(radi);
+            radi.data = angles.knee_pitch_R;
+            pb_knee_pitch_R.publish(radi);
+        }
+
+        void waypoint_transition(walking_gait_angles waypoint_1, walking_gait_angles waypoint_2, int n_iterations, ros::Rate rate) {
+            double hip_roll_L_delta = (waypoint_2.hip_roll_L - waypoint_1.hip_roll_L)/n_iterations;
+            double hip_roll_R_delta = (waypoint_2.hip_roll_R - waypoint_1.hip_roll_R)/n_iterations;
+            double hip_yaw_L_delta = (waypoint_2.hip_yaw_L - waypoint_1.hip_yaw_L)/n_iterations;
+            double hip_yaw_R_delta = (waypoint_2.hip_yaw_R - waypoint_1.hip_yaw_R)/n_iterations;
+            double hip_pitch_L_delta = (waypoint_2.hip_pitch_L - waypoint_1.hip_pitch_L)/n_iterations;
+            double hip_pitch_R_delta = (waypoint_2.hip_pitch_R - waypoint_1.hip_pitch_R)/n_iterations;
+            double knee_pitch_L_delta = (waypoint_2.knee_pitch_L - waypoint_1.knee_pitch_L)/n_iterations;
+            double knee_pitch_R_delta = (waypoint_2.knee_pitch_R - waypoint_1.knee_pitch_R)/n_iterations;
+            double ankle_pitch_L_delta = (waypoint_2.ankle_pitch_L - waypoint_1.ankle_pitch_L)/n_iterations;
+            double ankle_pitch_R_delta = (waypoint_2.ankle_pitch_R - waypoint_1.ankle_pitch_R)/n_iterations;
+            double ankle_roll_L_delta = (waypoint_2.ankle_roll_L - waypoint_1.ankle_roll_L)/n_iterations;
+            double ankle_roll_R_delta = (waypoint_2.ankle_roll_R - waypoint_1.ankle_roll_R)/n_iterations;
+
+            double curr_hip_roll_L = waypoint_1.hip_roll_L, 
+                curr_hip_roll_R = waypoint_1.hip_roll_R, 
+                curr_hip_yaw_L = waypoint_1.hip_yaw_L, 
+                curr_hip_yaw_R = waypoint_1.hip_yaw_R, 
+                curr_hip_pitch_L = waypoint_1.hip_pitch_L, 
+                curr_hip_pitch_R = waypoint_1.hip_pitch_R,
+                curr_knee_pitch_L = waypoint_1.knee_pitch_L, 
+                curr_knee_pitch_R = waypoint_1.knee_pitch_R, 
+                curr_ankle_pitch_L = waypoint_1.ankle_pitch_L, 
+                curr_ankle_pitch_R = waypoint_1.ankle_pitch_R, 
+                curr_ankle_roll_L = waypoint_1.ankle_roll_L, 
+                curr_ankle_roll_R = waypoint_1.ankle_roll_R;
+
+            walking_gait_angles curr_gait_angles = walking_gait_angles(waypoint_1);
+
+            for (int i = 0; i < n_iterations; i++) {
+                curr_gait_angles.add_angles(
+                    hip_roll_L_delta,
+                    hip_roll_R_delta,
+                    hip_yaw_L_delta,
+                    hip_yaw_R_delta,
+                    hip_pitch_L_delta,
+                    hip_pitch_R_delta,
+                    knee_pitch_L_delta,
+                    knee_pitch_R_delta,
+                    ankle_pitch_L_delta,
+                    ankle_pitch_R_delta,
+                    ankle_roll_L_delta,
+                    ankle_roll_R_delta
+                );
+
+                publish_gait_angles(curr_gait_angles);
+
+                rate.sleep();
+            }
+
+        }
+
         void go_down() {
             std::cout << "Going down!\n";
             std_msgs::Float64 radi;
-            // radi.data = 1;
-            // pb_ankle_pitch_R.publish(radi);
-            // pb_ankle_pitch_L.publish(radi);
-            for (int k = 0; k < 800; k++) {
-                std_msgs::Float64 radi;
-                // Increase knee pitch
-                radi.data = curr_rknee_p+0.001;
-                curr_rknee_p += 0.001;
-                pb_knee_pitch_R.publish(radi);
-                radi.data = curr_lknee_p+0.001;
-                curr_lknee_p += 0.001;
-                pb_knee_pitch_L.publish(radi);
-                // Decrease hip pitch
-                radi.data = curr_rhip_p-0.001;
-                curr_rhip_p -= 0.001;
+            
+            // for (int k = 0; k < 800; k++) {
+            //     std_msgs::Float64 radi;
+            //     // Increase knee pitch
+            //     radi.data = curr_rknee_p+0.001;
+            //     curr_rknee_p += 0.001;
+            //     pb_knee_pitch_R.publish(radi);
+            //     radi.data = curr_lknee_p+0.001;
+            //     curr_lknee_p += 0.001;
+            //     pb_knee_pitch_L.publish(radi);
+            //     // Decrease hip pitch
+            //     radi.data = curr_rhip_p-0.001;
+            //     curr_rhip_p -= 0.001;
+            //     pb_hip_pitch_R.publish(radi);
+            //     radi.data = curr_lhip_p-0.001;
+            //     curr_lhip_p -= 0.001;
+            //     pb_hip_pitch_L.publish(radi);
+            // }
+            // ros::Rate rate(10);
+            // float desired_angle = 0.4;
+            // int max_iter = 100;
+            // for (int i = 0; i < max_iter; i++) {
+            //     radi.data = i/(float)max_iter*desired_angle*-1;
+            //     pb_hip_roll_R.publish(radi);
+            //     radi.data = i/(float)max_iter*desired_angle;
+            //     pb_hip_roll_L.publish(radi);
+            //     rate.sleep();
+            // }
+            
+            ros::Rate rate(10);
+            float desired_angle = 0.4;
+            int max_iter = 100;
+            for (int i = 0; i < max_iter; i++) {
+                radi.data = i/(float)max_iter*desired_angle*-1;
                 pb_hip_pitch_R.publish(radi);
-                radi.data = curr_lhip_p-0.001;
-                curr_lhip_p -= 0.001;
+                radi.data = i/(float)max_iter*desired_angle;
                 pb_hip_pitch_L.publish(radi);
+                rate.sleep();
             }
-            std::cout << "Went down!";
+
+            std::cout << "Went down!\n";
         }
 };
 
 int main(int argc, char **argv) {
+    // Initialise ROS node 
     ros::init(argc, argv, "kdl_node");
     ros::NodeHandle nh;
-    ros::Rate rate(30);
 
     // Extract urdf_file from parameters
     std::string abi_urdf_string;
@@ -183,10 +404,29 @@ int main(int argc, char **argv) {
     // Create instance of abi_legs
     abi_legs abi(&nh, abi_urdf_string, "base_link", "l_ankle_roll_link__1__1", "r_ankle_roll_link__1__1");
 
-    rate.sleep();
+    // Gait angles
+    walking_gait_angles double_support = walking_gait_angles(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    walking_gait_angles initial_contact = walking_gait_angles(0, 0, 0, 0, 0, 0.5, -0.1, -0.3, 0, 0, 0, 0);
+    walking_gait_angles opposite_toe_off = walking_gait_angles(0, 0, 0, 0, -0.5, 0, 0, 0, -0.1, 0, 0, 0);
+    walking_gait_angles heel_rise = walking_gait_angles(0, 0, 0, 0, 0.6, 0.1, -0.2, -0.2, -0.2, -0.2, 0, 0);
+    walking_gait_angles opposite_initial_contact = walking_gait_angles(0, 0, 0, 0, 0.5, 0, 0, -0.4, 0, 0, 0, 0);
+    walking_gait_angles toe_off = walking_gait_angles(0, 0, 0, 0, 0, 0.5, 0, 0, 0, -0.1, 0, 0);
+    walking_gait_angles feet_adjcaent = walking_gait_angles(0, 0, 0, 0, 0, 0.4, 0, -0.4, 0, 0, 0, 0);
+    walking_gait_angles tibia_vertical = walking_gait_angles(0, 0, 0, 0, 0.1, 0.5, -0.3, -0.3, 0, 0, 0, 0);
+
+    ros::Rate rate(10);
+    abi.waypoint_transition(double_support, initial_contact, 100, rate);
+    abi.waypoint_transition(initial_contact, opposite_toe_off, 100, rate);
+    abi.waypoint_transition(opposite_toe_off, heel_rise, 100, rate);
+    abi.waypoint_transition(heel_rise, opposite_initial_contact, 100, rate);
+    abi.waypoint_transition(opposite_initial_contact, toe_off, 100, rate);
+    abi.waypoint_transition(toe_off, feet_adjcaent, 100, rate);
+    abi.waypoint_transition(feet_adjcaent, tibia_vertical, 100, rate);
+    abi.waypoint_transition(tibia_vertical, initial_contact, 100, rate);
+    abi.waypoint_transition(initial_contact, double_support, 100, rate);
 
     // Go down!
-    abi.go_down();
+    // abi.go_down();
 
     ros::spin();
     return 1;
